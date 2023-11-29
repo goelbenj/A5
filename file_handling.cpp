@@ -10,7 +10,7 @@
 #include <iomanip>
 
 
-#define TABLE_SIZE 10
+#define TABLE_SIZE 20
 #define NUM_FILES 4
 
 // mapping list lock
