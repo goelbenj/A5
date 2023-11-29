@@ -6,6 +6,8 @@
 #include <vector>
 
 
+#define TABLE_SIZE 10
+
 std::list<std::pair<std::string, std::string>> read_lines_from_file(std::string filename)
 {
    std::list<std::pair<std::string, std::string>> list{};
@@ -24,11 +26,11 @@ std::list<std::pair<std::string, std::string>> read_lines_from_file(std::string 
    return list;
 }
 
-// Simple hash function for demonstration purposes
-size_t basicHash(const std::string &key, size_t tableSize) {
-    size_t hashValue = 0;
+// Hash function for demonstration purposes
+size_t djb2Hash(const std::string &key, size_t tableSize) {
+    size_t hashValue = 5381; // Initial hash value
     for (char ch : key) {
-        hashValue = (hashValue * 31) + ch;
+        hashValue = (hashValue << 5) + hashValue + ch; // hash * 33 + ch
     }
     return hashValue % tableSize;
 }
@@ -53,7 +55,7 @@ public:
 
     // Insert a key-value pair into the hash table
     void insert(const K &key, const V &value) {
-        size_t index = basicHash(key, tableSize);
+        size_t index = djb2Hash(key, tableSize);
 
         // If the key is not found, insert a new entry
         table[index].push_back({key, value});
@@ -61,7 +63,7 @@ public:
 
     // Retrieve the value associated with a given key
     V get(const K &key) {
-        size_t index = basicHash(key, tableSize);
+        size_t index = djb2Hash(key, tableSize);
         for (const auto &entry : table[index]) {
             if (entry.key == key) {
                 return entry.value;
@@ -74,7 +76,7 @@ public:
 
     // Delete the entry associated with a given key
     void remove(const K &key) {
-        size_t index = basicHash(key, tableSize);
+        size_t index = djb2Hash(key, tableSize);
         auto &bucket = table[index];
 
         // Use iterator to find and remove the entry
@@ -97,6 +99,10 @@ public:
             std::cout << std::endl;
         }
     }
+
+    std::pair<std::vector<std::list<HashEntry<std::string, std::string>>>::iterator, std::vector<std::list<HashEntry<std::string, std::string>>>::iterator> iterator() {
+        return std::make_pair(table.begin(), table.end());
+    }
 };
 
 template <typename K, typename V>
@@ -110,8 +116,8 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
         // Create line list from file
         std::list<std::pair<std::string, std::string>> list = read_lines_from_file(file_name);
 
-        // Create a hash table with a size of 10
-        HashTable<K, V> hashTable(10);
+        // Create a hash table with a size of TABLE_SIZE
+        HashTable<K, V> hashTable(TABLE_SIZE);
 
         // Insert key-value pairs
         for (const auto& elem : list)
@@ -137,5 +143,18 @@ int main(int argc, char **argv)
         "/Users/bengoel/Documents/A5/db3.txt",
         "/Users/bengoel/Documents/A5/db4.txt",
     };
+
+    // Create mapping for each file
     auto mapping_list = create_mapping<std::string, std::string>(files);
+
+    // Merge all mappings into one
+    HashTable<std::string, std::string> majorTable = mapping_list.front();
+    mapping_list.pop_front();
+    for (; !mapping_list.empty(); mapping_list.pop_front()) {
+        // Perform merge
+        auto iterator = mapping_list.front().iterator();
+        for (; iterator.first != iterator.second; iterator.first++) {
+            std::cout << iterator.first->size() << "\n";
+        }
+    }
 }
