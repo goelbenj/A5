@@ -7,6 +7,8 @@
 
 #define TABLE_SIZE 10
 
+enum opt {none, tech, thread};
+
 std::list<std::pair<std::string, std::string>> read_lines_from_file(std::string filename)
 {
     std::list<std::pair<std::string, std::string>> list{};
@@ -170,9 +172,32 @@ void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2, K word)
 int main(int argc, char **argv)
 {
     std::string word;
-    if (argc > 1){
+    opt optLvl;
+    if (argc > 1) {
         word = argv[1];
         std::cout << "Performing Map Reduction for " << word << std::endl;
+        if (argc > 2) {
+            std::string optStr = argv[2];
+            if (optStr == "none") {
+                std::cout << "Performing Map Reduction with no optimization" << std::endl;
+                optLvl = none;
+            }
+            else if (optStr == "tech") {
+                std::cout << "Performing Map Reduction with coding technique optimizations" << std::endl;
+                optLvl = tech;
+            }
+            else if (optStr == "thread") {
+                std::cout << "Performing Map Reduction with a multi-threaded optimization" << std::endl;
+                optLvl = thread;
+            }
+            else {
+                std::cout << "Invalid optimization level! Please specify \"none\", \"tech\", or \"thread\"\n";
+                optLvl = none;
+            }
+        }
+        else {
+            std::cout << "No optimization level specified, performing map reduction with no optimization.\n";
+        }
     }
     else {
         std::cout << "No word specified, performing map reduction for all words" << std::endl;
