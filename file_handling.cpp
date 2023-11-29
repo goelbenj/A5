@@ -99,21 +99,43 @@ public:
     }
 };
 
+template <typename K, typename V>
+std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
+{
+    std::list<HashTable<K, V>> mapping_list{};
+    for (const auto& file_name : files) {
+        // Print name of file
+        std::cout << file_name << "\n";
+
+        // Create line list from file
+        std::list<std::pair<std::string, std::string>> list = read_lines_from_file(file_name);
+
+        // Create a hash table with a size of 10
+        HashTable<K, V> hashTable(10);
+
+        // Insert key-value pairs
+        for (const auto& elem : list)
+        {
+            hashTable.insert(elem.first, elem.second);
+        }
+
+        // Display the initial contents of the hash table
+        hashTable.display();
+
+        // Add hash table to mapping list
+        mapping_list.push_back(hashTable);
+        }
+
+    return mapping_list;
+}
+
 int main(int argc, char **argv)
 {
-    // Create line list from file
-    std::list<std::pair<std::string, std::string>> list = read_lines_from_file("/Users/bengoel/Documents/A5/db1.txt");
-
-    // Create a hash table with a size of 10
-    HashTable<std::string, std::string> hashTable(10);
-
-    // Insert key-value pairs
-    for (const auto& elem : list)
-    {
-        std::cout << elem.second << std::endl;
-        hashTable.insert(elem.first, elem.second);
-    }
-
-    // Display the initial contents of the hash table
-    hashTable.display();
+    const std::list<std::string> files = {
+        "/Users/bengoel/Documents/A5/db1.txt",
+        "/Users/bengoel/Documents/A5/db2.txt",
+        "/Users/bengoel/Documents/A5/db3.txt",
+        "/Users/bengoel/Documents/A5/db4.txt",
+    };
+    auto mapping_list = create_mapping<std::string, std::string>(files);
 }
