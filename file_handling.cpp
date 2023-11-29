@@ -189,12 +189,15 @@ std::list<HashTable<K, V>> create_mapping_threaded(const std::list<std::string> 
     std::list<HashTable<K, V>> mapping_list{};
 
     // perform simultaneous insertions using global lock
-    std::vector<std::thread> threads{};
+    std::thread threads[NUM_FILES];
     int i = 0;
     for (const auto& file_name : files) {
         threads[i] = std::thread(parse_hash<K, V>, file_name, mapping_list);
         i++;
     }
+
+    // join threads
+    for (auto& th : threads) th.join();
 
     return mapping_list;
 }
@@ -238,6 +241,7 @@ void multi_threaded_main(std::list<std::string> files, std::string word)
 
     // Merge all mappings into one
     HashTable<std::string, std::string> majorTable = mapping_list.front();
+    std::cout << "DEBUG" << "\n";
     mapping_list.pop_front();
     for (; !mapping_list.empty(); mapping_list.pop_front())
     {
