@@ -6,9 +6,9 @@
 #include <vector>
 
 
-std::map<std::string, std::string> read_lines_from_file(std::string filename)
+std::list<std::pair<std::string, std::string>> read_lines_from_file(std::string filename)
 {
-   std::map<std::string, std::string> map{};
+   std::list<std::pair<std::string, std::string>> list{};
    std::ifstream inFile {filename};
    while (inFile)
    {
@@ -17,11 +17,11 @@ std::map<std::string, std::string> read_lines_from_file(std::string filename)
             getline(inFile, key, ',') && getline(inFile, value);
             if(inFile)
             {
-                    map[key] = value;
+                    list.push_back({key, value});
             }
         }
    }
-   return map;
+   return list;
 }
 
 // Simple hash function for demonstration purposes
@@ -54,13 +54,13 @@ public:
     // Insert a key-value pair into the hash table
     void insert(const K &key, const V &value) {
         size_t index = basicHash(key, tableSize);
-        for (auto &entry : table[index]) {
-            if (entry.key == key) {
-                // Update the value if the key already exists
-                entry.value = value;
-                return;
-            }
-        }
+        // for (auto &entry : table[index]) {
+        //     if (entry.key == key) {
+        //         // Update the value if the key already exists
+        //         entry.value = value;
+        //         return;
+        //     }
+        // }
 
         // If the key is not found, insert a new entry
         table[index].push_back({key, value});
@@ -105,50 +105,18 @@ public:
     }
 };
 
-// int main() {
-//     // Create a hash table with a size of 10
-//     HashTable<std::string, int> hashTable(10);
-
-//     // Insert some key-value pairs
-//     hashTable.insert("one", 1);
-//     hashTable.insert("two", 2);
-//     hashTable.insert("three", 3);
-
-//     // Display the initial contents of the hash table
-//     std::cout << "Initial Hash Table:" << std::endl;
-//     hashTable.display();
-
-//     // Retrieve and display values associated with keys
-//     std::cout << "Value for key 'two': " << hashTable.get("two") << std::endl;
-
-//     // Update the value for an existing key
-//     hashTable.insert("two", 22);
-
-//     // Display the updated contents of the hash table
-//     std::cout << "Updated Hash Table:" << std::endl;
-//     hashTable.display();
-
-//     // Remove an entry from the hash table
-//     hashTable.remove("one");
-
-//     // Display the final contents of the hash table
-//     std::cout << "Final Hash Table:" << std::endl;
-//     hashTable.display();
-
-//     return 0;
-// }
-
 int main(int argc, char **argv)
 {
-    // Create line map from file
-    std::map<std::string, std::string> map = read_lines_from_file("/Users/bengoel/Documents/A5/db1.txt");
+    // Create line list from file
+    std::list<std::pair<std::string, std::string>> list = read_lines_from_file("/Users/bengoel/Documents/A5/db1.txt");
 
     // Create a hash table with a size of 10
     HashTable<std::string, std::string> hashTable(10);
 
     // Insert key-value pairs
-    for (const auto& elem : map)
+    for (const auto& elem : list)
     {
+        std::cout << elem.second << std::endl;
         hashTable.insert(elem.first, elem.second);
     }
 
