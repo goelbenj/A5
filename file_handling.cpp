@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <mutex>
@@ -6,6 +7,8 @@
 #include <list>
 #include <thread>
 #include <vector>
+#include <iomanip>
+
 
 #define TABLE_SIZE 10
 #define NUM_FILES 4
@@ -163,7 +166,7 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
 }
 
 template <typename K, typename V>
-void parse_hash(std::string file_name, std::list<HashTable<K, V>> mapping_vector)
+void parse_hash(std::string file_name, std::list<HashTable<K, V>>& mapping_list)
 {
     // Create line list from file
     std::list<std::pair<std::string, std::string>> list = read_lines_from_file(file_name);
@@ -178,9 +181,8 @@ void parse_hash(std::string file_name, std::list<HashTable<K, V>> mapping_vector
     }
 
     // Add hash table to mapping vector
-    m.lock();
-    mapping_vector.push_back(hashTable);
-    m.unlock();
+    std::lock_guard<std::mutex> lock(m);
+    mapping_list.push_back(hashTable);
 }
 
 template <typename K, typename V>
@@ -192,7 +194,7 @@ std::list<HashTable<K, V>> create_mapping_threaded(const std::list<std::string> 
     std::thread threads[NUM_FILES];
     int i = 0;
     for (const auto& file_name : files) {
-        threads[i] = std::thread(parse_hash<K, V>, file_name, mapping_list);
+        threads[i] = std::thread(parse_hash<K, V>, file_name, std::ref(mapping_list));
         i++;
     }
 
@@ -241,7 +243,6 @@ void multi_threaded_main(std::list<std::string> files, std::string word)
 
     // Merge all mappings into one
     HashTable<std::string, std::string> majorTable = mapping_list.front();
-    std::cout << "DEBUG" << "\n";
     mapping_list.pop_front();
     for (; !mapping_list.empty(); mapping_list.pop_front())
     {
