@@ -54,13 +54,6 @@ public:
     // Insert a key-value pair into the hash table
     void insert(const K &key, const V &value) {
         size_t index = basicHash(key, tableSize);
-        // for (auto &entry : table[index]) {
-        //     if (entry.key == key) {
-        //         // Update the value if the key already exists
-        //         entry.value = value;
-        //         return;
-        //     }
-        // }
 
         // If the key is not found, insert a new entry
         table[index].push_back({key, value});
@@ -98,6 +91,7 @@ public:
         for (size_t i = 0; i < tableSize; ++i) {
             std::cout << "Bucket " << i << ": ";
             for (const auto &entry : table[i]) {
+                std::cout << "\n    - ";
                 std::cout << "(" << entry.key << ", " << entry.value << ") ";
             }
             std::cout << std::endl;
