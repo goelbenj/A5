@@ -167,6 +167,25 @@ void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2, K word)
     }
 }
 
+void unoptimized_main(std::list<std::string> files, std::string word)
+{
+    // Create mapping for each file
+    auto mapping_list = create_mapping<std::string, std::string>(files);
+
+    // Merge all mappings into one
+    HashTable<std::string, std::string> majorTable = mapping_list.front();
+    mapping_list.pop_front();
+    for (; !mapping_list.empty(); mapping_list.pop_front())
+    {
+        // Perform merge
+        merge_mappings(majorTable, mapping_list.front(), word);
+    }
+
+    // Reduce map
+    auto newTable = majorTable.reduce(word);
+    newTable.display();
+}
+
 int main(int argc, char **argv)
 {
     std::string word;
@@ -184,21 +203,12 @@ int main(int argc, char **argv)
         "db3.txt",
         "db4.txt",
     };
-    //const std::string word = "Top Gun";
 
-    // Create mapping for each file
-    auto mapping_list = create_mapping<std::string, std::string>(files);
-
-    // Merge all mappings into one
-    HashTable<std::string, std::string> majorTable = mapping_list.front();
-    mapping_list.pop_front();
-    for (; !mapping_list.empty(); mapping_list.pop_front())
-    {
-        // Perform merge
-        merge_mappings(majorTable, mapping_list.front(), word);
-    }
-
-    // Reduce map
-    auto newTable = majorTable.reduce(word);
-    newTable.display();
+    // Run unoptimized reduced-map
+    auto start = std::chrono::high_resolution_clock::now();
+    unoptimized_main(files, word);
+    auto stop = std::chrono::high_resolution_clock::now();
+    double diff = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count();
+    diff *= 1e-9;
+    std::cout << "Total duration: " << std::setw(9) << diff << " seconds\n";
 }
