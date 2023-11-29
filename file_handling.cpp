@@ -110,9 +110,6 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
 {
     std::list<HashTable<K, V>> mapping_list{};
     for (const auto& file_name : files) {
-        // Print name of file
-        std::cout << file_name << "\n";
-
         // Create line list from file
         std::list<std::pair<std::string, std::string>> list = read_lines_from_file(file_name);
 
@@ -125,14 +122,23 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
             hashTable.insert(elem.first, elem.second);
         }
 
-        // Display the initial contents of the hash table
-        hashTable.display();
-
         // Add hash table to mapping list
         mapping_list.push_back(hashTable);
         }
 
     return mapping_list;
+}
+
+template <typename K, typename V>
+void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2) {
+    auto iterator = table2.iterator();
+    // Iterate through linked lists and merge
+    for (; iterator.first != iterator.second; iterator.first++) {
+        // Add each node into table1
+        for (const auto& node : *iterator.first) {
+            table1.insert(node.key, node.value);
+        }
+    }
 }
 
 int main(int argc, char **argv)
@@ -152,9 +158,7 @@ int main(int argc, char **argv)
     mapping_list.pop_front();
     for (; !mapping_list.empty(); mapping_list.pop_front()) {
         // Perform merge
-        auto iterator = mapping_list.front().iterator();
-        for (; iterator.first != iterator.second; iterator.first++) {
-            std::cout << iterator.first->size() << "\n";
-        }
+        merge_mappings(majorTable, mapping_list.front());
     }
+    majorTable.display();
 }
