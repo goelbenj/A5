@@ -258,7 +258,7 @@ void multi_threaded_main(std::list<std::string> files, std::string word)
 int main(int argc, char **argv)
 {
     std::string word;
-    opt optLvl;
+    opt optLvl = none;
     if (argc > 1) {
         word = argv[1];
         std::cout << "Performing Map Reduction for " << word << std::endl;
@@ -286,7 +286,8 @@ int main(int argc, char **argv)
         }
     }
     else {
-        std::cout << "No word specified, performing map reduction for all words" << std::endl;
+        std::cout << "No word specified, performing no map-reduce" << std::endl;
+        return 0;
     }
     
     const std::list<std::string> files = {
@@ -296,10 +297,20 @@ int main(int argc, char **argv)
         "db4.txt",
     };
 
-    // Run unoptimized reduced-map
     auto start = std::chrono::high_resolution_clock::now();
-    // unoptimized_main(files, word);
-    multi_threaded_main(files, word);
+    switch (optLvl)
+    {
+        case none:
+            // Run unoptimized reduced-map
+            unoptimized_main(files, word);
+        case tech:
+            break;
+        case thread:
+            // Run multi-threaded reduced-map
+            multi_threaded_main(files, word);
+        default:
+            break;
+    }
     auto stop = std::chrono::high_resolution_clock::now();
     double diff = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count();
     diff *= 1e-9;
