@@ -1,11 +1,17 @@
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <fstream>
 #include <string>
 #include <list>
+#include <thread>
 #include <vector>
 
 #define TABLE_SIZE 10
+#define NUM_FILES 4
+
+// mapping list lock
+std::mutex m;
 
 std::list<std::pair<std::string, std::string>> read_lines_from_file(std::string filename)
 {
@@ -155,6 +161,43 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
 }
 
 template <typename K, typename V>
+void parse_hash(std::string file_name, std::list<HashTable<K, V>> mapping_vector)
+{
+    // Create line list from file
+    std::list<std::pair<std::string, std::string>> list = read_lines_from_file(file_name);
+
+    // Create a hash table with a size of TABLE_SIZE
+    HashTable<K, V> hashTable(TABLE_SIZE);
+
+    // Insert key-value pairs
+    for (const auto &elem : list)
+    {
+        hashTable.insert(elem.first, elem.second);
+    }
+
+    // Add hash table to mapping vector
+    m.lock();
+    mapping_vector.push_back(hashTable);
+    m.unlock();
+}
+
+template <typename K, typename V>
+std::list<HashTable<K, V>> create_mapping_threaded(const std::list<std::string> files)
+{
+    std::list<HashTable<K, V>> mapping_list{};
+
+    // perform simultaneous insertions using global lock
+    std::vector<std::thread> threads{};
+    int i = 0;
+    for (const auto& file_name : files) {
+        threads[i] = std::thread(parse_hash<K, V>, file_name, mapping_list);
+        i++;
+    }
+
+    return mapping_list;
+}
+
+template <typename K, typename V>
 void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2, K word)
 {
     // Get element corresponding to word
@@ -171,6 +214,25 @@ void unoptimized_main(std::list<std::string> files, std::string word)
 {
     // Create mapping for each file
     auto mapping_list = create_mapping<std::string, std::string>(files);
+
+    // Merge all mappings into one
+    HashTable<std::string, std::string> majorTable = mapping_list.front();
+    mapping_list.pop_front();
+    for (; !mapping_list.empty(); mapping_list.pop_front())
+    {
+        // Perform merge
+        merge_mappings(majorTable, mapping_list.front(), word);
+    }
+
+    // Reduce map
+    auto newTable = majorTable.reduce(word);
+    newTable.display();
+}
+
+void multi_threaded_main(std::list<std::string> files, std::string word)
+{
+    // Create mapping for each file
+    auto mapping_list = create_mapping_threaded<std::string, std::string>(files);
 
     // Merge all mappings into one
     HashTable<std::string, std::string> majorTable = mapping_list.front();
@@ -206,7 +268,8 @@ int main(int argc, char **argv)
 
     // Run unoptimized reduced-map
     auto start = std::chrono::high_resolution_clock::now();
-    unoptimized_main(files, word);
+    // unoptimized_main(files, word);
+    multi_threaded_main(files, word);
     auto stop = std::chrono::high_resolution_clock::now();
     double diff = std::chrono::duration_cast<std::chrono::nanoseconds>(stop - start).count();
     diff *= 1e-9;
