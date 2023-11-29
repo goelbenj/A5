@@ -65,20 +65,11 @@ public:
         table[index].push_back({key, value});
     }
 
-    // Retrieve the value associated with a given key
-    V get(const K &key)
+    // Retrieve the element associated with a given key
+    std::list<HashEntry<K, V>> get(const K &key)
     {
         size_t index = djb2Hash(key, tableSize);
-        for (const auto &entry : table[index])
-        {
-            if (entry.key == key)
-            {
-                return entry.value;
-            }
-        }
-
-        // Return a default value if the key is not found
-        return V();
+        return table[index];
     }
 
     // Delete the entry associated with a given key
@@ -120,19 +111,21 @@ public:
 
     // Reduce each element by counting number of entries
     // and add this new node to end of element
-    void reduce()
+    HashTable<K, V> reduce(const K word)
     {
-        for (size_t i = 0; i < tableSize; ++i)
+        // Index element with word
+        auto element = get(word);
+        // Create new hash table to contain reduced key-value pairs
+        HashTable<K, V> newTable(TABLE_SIZE);
+        // Only reduce elements with key-value pairs
+        if (element.size())
         {
-            std::list<HashEntry<K, V>> &element = table[i];
-            // Only reduce elements with key-value pairs
-            if (element.size())
-            {
-                V count = std::to_string(element.size());
-                K key = element.front().key;
-                element.push_back({key, count});
-            }
+            V count = std::to_string(element.size());
+            K key = element.front().key;
+            newTable.insert(key, count);
         }
+
+        return newTable;
     }
 };
 
@@ -162,17 +155,15 @@ std::list<HashTable<K, V>> create_mapping(const std::list<std::string> files)
 }
 
 template <typename K, typename V>
-void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2)
+void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2, K word)
 {
-    auto iterator = table2.iterator();
-    // Iterate through linked lists and merge
-    for (; iterator.first != iterator.second; iterator.first++)
+    // Get element corresponding to word
+    auto element = table2.get(word);
+
+    // Add each node into table1
+    for (const auto &node : element)
     {
-        // Add each node into table1
-        for (const auto &node : *iterator.first)
-        {
-            table1.insert(node.key, node.value);
-        }
+        table1.insert(node.key, node.value);
     }
 }
 
@@ -184,6 +175,7 @@ int main(int argc, char **argv)
         "/Users/bengoel/Documents/A5/db3.txt",
         "/Users/bengoel/Documents/A5/db4.txt",
     };
+    const std::string word = "Top Gun";
 
     // Create mapping for each file
     auto mapping_list = create_mapping<std::string, std::string>(files);
@@ -194,10 +186,10 @@ int main(int argc, char **argv)
     for (; !mapping_list.empty(); mapping_list.pop_front())
     {
         // Perform merge
-        merge_mappings(majorTable, mapping_list.front());
+        merge_mappings(majorTable, mapping_list.front(), word);
     }
 
     // Reduce map
-    majorTable.reduce();
-    majorTable.display();
+    auto newTable = majorTable.reduce(word);
+    newTable.display();
 }
