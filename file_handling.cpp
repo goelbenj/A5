@@ -3,9 +3,9 @@
 #include <fstream>
 #include <string>
 
-void read_lines_from_file()
+std::map<std::string, std::string> read_lines_from_file()
 {
-   std::map<std::string, std::string> myMap{};
+   std::map<std::string, std::string> map{};
    std::ifstream inFile {"/Users/bengoel/Documents/A5/db1.txt"};
    while (inFile)
    {
@@ -14,18 +14,19 @@ void read_lines_from_file()
             getline(inFile, key, ',') && getline(inFile, value);
             if(inFile)
             {
-                    myMap[key] = value;
+                    map[key] = value;
             }
         }
    }
-   for (const auto& elem : myMap)
-   {
-       std::cout << elem.first << " | " << elem.second << "\n";
-   }
+   return map;
 }
 
 
 int main(int argc, char **argv)
 {
-    read_lines_from_file();
+    std::map<std::string, std::string> map = read_lines_from_file();
+    for (const auto& elem : map)
+    {
+        std::cout << elem.first << " | " << elem.second << "\n";
+    }
 }
