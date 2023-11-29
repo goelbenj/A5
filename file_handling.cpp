@@ -169,13 +169,22 @@ void merge_mappings(HashTable<K, V> &table1, HashTable<K, V> table2, K word)
 
 int main(int argc, char **argv)
 {
+    std::string word;
+    if (argc > 1){
+        word = argv[1];
+        std::cout << "Performing Map Reduction for " << word << std::endl;
+    }
+    else {
+        std::cout << "No word specified, performing map reduction for all words" << std::endl;
+    }
+    
     const std::list<std::string> files = {
-        "/Users/bengoel/Documents/A5/db1.txt",
-        "/Users/bengoel/Documents/A5/db2.txt",
-        "/Users/bengoel/Documents/A5/db3.txt",
-        "/Users/bengoel/Documents/A5/db4.txt",
+        "db1.txt",
+        "db2.txt",
+        "db3.txt",
+        "db4.txt",
     };
-    const std::string word = "Top Gun";
+    //const std::string word = "Top Gun";
 
     // Create mapping for each file
     auto mapping_list = create_mapping<std::string, std::string>(files);
